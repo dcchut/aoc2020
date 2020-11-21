@@ -1,4 +1,4 @@
-use crate::Extract;
+
 use crate::{ProblemInput, Solution};
 
 pub struct Q2;

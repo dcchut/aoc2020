@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use std::fmt::Display;
+
 use std::path::Path;
 
 pub mod grid;
@@ -175,11 +175,11 @@ impl From<Vec<&str>> for ProblemInput {
 // TODO: might want to be generic over return type
 // or perhaps Box<dyn ToString> or something like that.
 pub trait Solution: Send + Sync {
-    fn part1(&self, lines: &ProblemInput) -> String {
+    fn part1(&self, _lines: &ProblemInput) -> String {
         String::new()
     }
 
-    fn part2(&self, lines: &ProblemInput) -> String {
+    fn part2(&self, _lines: &ProblemInput) -> String {
         String::new()
     }
 }
