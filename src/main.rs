@@ -1,9 +1,9 @@
 use anyhow::Result;
-use aoc2019::questions::*;
-use aoc2019::{ProblemInput, Solution};
+use aoc2020::questions::*;
+use aoc2020::{ProblemInput, Solution};
 use crossbeam::thread;
 
-fn run_problem(solutions: &'static [Box<dyn Solution>], index: usize) -> Result<(i64, i64)> {
+fn run_problem(solutions: &'static [Box<dyn Solution>], index: usize) -> Result<(String, String)> {
     let (part1, part2) = thread::scope(move |s| {
         let solution = &solutions[index];
 
