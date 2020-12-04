@@ -1,5 +1,5 @@
-use crate::{Extract, ProblemInput};
-use anyhow::{anyhow, Context, Result};
+use crate::{FromProblemInput, FromProblemInputLine, ProblemInput};
+use anyhow::{anyhow, Result};
 use std::collections::{HashMap, HashSet};
 use std::ops::{Add, Sub};
 use std::str::FromStr;
@@ -252,36 +252,29 @@ impl<T> Grid<T> {
     }
 }
 
-impl Extract<Vec<Vec<Movement>>> for ProblemInput {
-    fn extract(&self) -> Result<Vec<Vec<Movement>>> {
-        let mut lines = Vec::new();
+impl FromProblemInputLine for Vec<Movement> {
+    fn from_line(line: &str) -> Self {
+        let mut current_line = Vec::new();
 
-        // each line is comma separated: R31,U19,....
-        for line in self.lines.iter() {
-            let mut current_line = Vec::new();
+        // split the line at commas
+        for part in line.split(',') {
+            // part is R31 or something like that
+            let movement = Movement::from_str(part).expect("invalid movement string");
 
-            // split the line at commas
-            for part in line.split(',') {
-                // part is R31 or something like that
-                let movement = Movement::from_str(part)?;
-
-                current_line.push(movement);
-            }
-
-            lines.push(current_line);
+            current_line.push(movement);
         }
 
-        Ok(lines)
+        current_line
     }
 }
 
-impl Extract<(Vec<Movement>, Vec<Movement>)> for ProblemInput {
-    fn extract(&self) -> Result<(Vec<Movement>, Vec<Movement>)> {
-        let mut input: Vec<Vec<Movement>> = self.extract()?;
+impl FromProblemInput for (Vec<Movement>, Vec<Movement>) {
+    fn from(lines: &ProblemInput) -> Self {
+        let mut input = lines.parse::<Vec<Vec<Movement>>>();
 
-        let f = input.pop().with_context(|| "invalid movement string")?;
-        let g = input.pop().with_context(|| "invalid movement string")?;
+        let f = input.pop().expect("invalid movement string");
+        let g = input.pop().expect("invalid movement string");
 
-        Ok((f, g))
+        (f, g)
     }
 }

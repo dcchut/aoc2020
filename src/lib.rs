@@ -34,10 +34,6 @@ where
     low
 }
 
-pub trait Extract<T> {
-    fn extract(&self) -> Result<T>;
-}
-
 #[derive(Debug, Clone)]
 pub struct ProblemInput {
     pub lines: Vec<String>,
@@ -92,14 +88,8 @@ impl ProblemInput {
         Ok(Self { lines })
     }
 
-    // Technically we don't need these functions, but they help get around
-    // our type inference issues
-    pub fn as_vec(&self) -> Vec<i64> {
-        self.extract().unwrap()
-    }
-
-    pub fn as_deep_vec(&self) -> Vec<Vec<i64>> {
-        self.extract().unwrap()
+    pub fn parse<T: FromProblemInput>(&self) -> T {
+        FromProblemInput::from(self)
     }
 
     pub fn as_csv(&self) -> Vec<String> {
@@ -123,8 +113,8 @@ impl ProblemInput {
     }
 }
 
-impl Extract<Vec<Vec<i64>>> for ProblemInput {
-    fn extract(&self) -> Result<Vec<Vec<i64>>> {
+impl FromProblemInput for Vec<Vec<i64>> {
+    fn from(lines: &ProblemInput) -> Self {
         fn parse_with_sep(line: &str, sep: char) -> Vec<i64> {
             line.split(sep).map(|v| v.parse().unwrap()).collect()
         }
@@ -143,19 +133,21 @@ impl Extract<Vec<Vec<i64>>> for ProblemInput {
             }
         }
 
-        Ok(self
+        lines
             .lines
             .iter()
             .map(|line| parse_line(line.as_str()))
-            .collect())
+            .collect()
     }
 }
 
-impl Extract<Vec<i64>> for ProblemInput {
-    fn extract(&self) -> Result<Vec<i64>> {
-        let inner: Vec<Vec<i64>> = self.extract()?;
-
-        Ok(inner.into_iter().flatten().collect())
+impl FromProblemInput for Vec<i64> {
+    fn from(lines: &ProblemInput) -> Self {
+        lines
+            .parse::<Vec<Vec<i64>>>()
+            .into_iter()
+            .flatten()
+            .collect()
     }
 }
 
@@ -168,6 +160,24 @@ impl From<Vec<String>> for ProblemInput {
 impl From<Vec<&str>> for ProblemInput {
     fn from(lines: Vec<&str>) -> Self {
         Self::from(lines.into_iter().map(String::from).collect::<Vec<_>>())
+    }
+}
+
+pub trait FromProblemInput {
+    fn from(lines: &ProblemInput) -> Self;
+}
+
+pub trait FromProblemInputLine {
+    fn from_line(line: &str) -> Self;
+}
+
+impl<T: FromProblemInputLine> FromProblemInput for Vec<T> {
+    fn from(lines: &ProblemInput) -> Self {
+        lines
+            .lines
+            .iter()
+            .map(|s| T::from_line(s.as_str()))
+            .collect()
     }
 }
 
@@ -197,25 +207,19 @@ impl Point {
     }
 }
 
-impl Extract<Vec<Point>> for ProblemInput {
-    fn extract(&self) -> Result<Vec<Point>> {
-        let mut points = Vec::with_capacity(self.lines.len());
+impl FromProblemInputLine for Point {
+    fn from_line(line: &str) -> Self {
+        let mut split = line.split(", ");
 
-        for line in self.lines.iter() {
-            let mut split = line.split(", ");
+        let part1 = &(split.next().unwrap())[3..];
+        let part2 = &(split.next().unwrap())[2..];
+        let part3 = split.next().unwrap();
+        let part3 = &(part3)[2..(part3.len() - 1)];
 
-            let part1 = &(split.next().unwrap())[3..];
-            let part2 = &(split.next().unwrap())[2..];
-            let part3 = split.next().unwrap();
-            let part3 = &(part3)[2..(part3.len() - 1)];
-
-            points.push(Point::new(
-                part1.parse().unwrap(),
-                part2.parse().unwrap(),
-                part3.parse().unwrap(),
-            ));
-        }
-
-        Ok(points)
+        Point::new(
+            part1.parse().unwrap(),
+            part2.parse().unwrap(),
+            part3.parse().unwrap(),
+        )
     }
 }

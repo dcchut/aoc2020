@@ -1,4 +1,3 @@
-
 use crate::{ProblemInput, Solution};
 
 pub struct Q17;
