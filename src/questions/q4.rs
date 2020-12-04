@@ -93,40 +93,17 @@ impl Passport {
 
 impl FromProblemInput for Vec<Passport> {
     fn from(lines: &ProblemInput) -> Vec<Passport> {
-        let mut buffer = Vec::new();
-        let mut parts = Vec::new();
-
-        for line in &lines.lines {
-            if line.is_empty() {
-                parts.push(std::mem::replace(&mut buffer, Vec::new()));
-            } else {
-                buffer.push(line.clone());
-            }
-        }
-
-        if !buffer.is_empty() {
-            parts.push(buffer);
-        }
-
-        let mut passports = Vec::new();
-
-        for part in parts.iter() {
-            let mut values = HashMap::new();
-            for line in part {
-                for sub_part in line.split_ascii_whitespace() {
-                    let (k, v) = sub_part.split_at(3);
-                    values.insert(k, &v[1..]);
-                }
-            }
-
-            if let Ok(passport) =
-                Passport::deserialize(MapDeserializer::<_, Error>::new(values.into_iter()))
-            {
-                passports.push(passport);
-            }
-        }
-
-        passports
+        lines
+            .lines
+            .join("\n")
+            .split("\n\n")
+            .filter_map(|p| {
+                Passport::deserialize(MapDeserializer::<_, Error>::new(
+                    p.split_ascii_whitespace().map(|s| (&s[..3], &s[4..])),
+                ))
+                .ok()
+            })
+            .collect()
     }
 }
 
