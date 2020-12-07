@@ -1,7 +1,6 @@
-use crate::{FromProblemInput, ProblemInput, Solution};
+use crate::{FromProblemInput, ProblemInput, Skip, Solution};
 use serde::de::value::{Error, MapDeserializer};
 use serde::Deserialize;
-use std::collections::HashMap;
 
 pub struct Q4;
 
@@ -91,18 +90,26 @@ impl Passport {
     }
 }
 
+impl FromProblemInput for Option<Passport> {
+    fn from(lines: &ProblemInput) -> Self {
+        Passport::deserialize(MapDeserializer::<_, Error>::new(
+            lines
+                .lines
+                .join("\n")
+                .split_ascii_whitespace()
+                .map(|s| (&s[..3], &s[4..])),
+        ))
+        .ok()
+    }
+}
+
 impl FromProblemInput for Vec<Passport> {
-    fn from(lines: &ProblemInput) -> Vec<Passport> {
+    fn from(lines: &ProblemInput) -> Self {
         lines
-            .lines
-            .join("\n")
-            .split("\n\n")
-            .filter_map(|p| {
-                Passport::deserialize(MapDeserializer::<_, Error>::new(
-                    p.split_ascii_whitespace().map(|s| (&s[..3], &s[4..])),
-                ))
-                .ok()
-            })
+            .parse::<Skip<Option<Passport>>>()
+            .unwrap()
+            .into_iter()
+            .flatten()
             .collect()
     }
 }

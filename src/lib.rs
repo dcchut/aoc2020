@@ -1,3 +1,5 @@
+#![feature(iterator_fold_self)]
+
 use anyhow::{Context, Result};
 
 use std::path::Path;
@@ -221,5 +223,35 @@ impl FromProblemInputLine for Point {
             part2.parse().unwrap(),
             part3.parse().unwrap(),
         )
+    }
+}
+
+/// Helper struct for parsing problem inputs which consist of multiple related inputs,
+/// separated by a newline between them.
+///
+/// # Example usage
+/// let parsed: Vec<T> = lines.parse::<Skip<T>>().unwrap();
+pub struct Skip<T> {
+    t: Vec<T>,
+}
+
+impl<T> Skip<T> {
+    pub fn unwrap(self) -> Vec<T> {
+        self.t
+    }
+}
+
+impl<T: FromProblemInput> FromProblemInput for Skip<T> {
+    fn from(lines: &ProblemInput) -> Self {
+        // The idea is that we want to split `lines.lines` at every newline:
+        // everything in between should be parsed as problem input.
+        Self {
+            t: lines
+                .lines
+                .split(String::is_empty)
+                .map(|v| ProblemInput::from(v.to_vec()))
+                .map(|pi| T::from(&pi))
+                .collect(),
+        }
     }
 }
