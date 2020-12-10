@@ -1,4 +1,5 @@
 #![feature(iterator_fold_self)]
+#![feature(map_first_last)]
 
 use anyhow::{Context, Result};
 
